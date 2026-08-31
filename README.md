@@ -1,36 +1,51 @@
-# API Monolítica com Express.js (Layered / N-camadas)
+# API Monolítica com Express.js (Hexagonal / Ports & Adapters)
 
 Exemplo simples de API REST em arquitetura **monolítica**, organizada no
-padrão **Layered Architecture (N-camadas)**: toda a aplicação roda em um
-único processo/deploy, com as responsabilidades separadas em camadas que só
-se comunicam com a camada imediatamente abaixo.
+padrão **Hexagonal (Ports & Adapters)**: o núcleo da aplicação (domínio +
+casos de uso) não conhece detalhes de infraestrutura (HTTP, banco de
+dados); toda comunicação externa passa por **ports** (contratos) e
+**adapters** (implementações concretas desses contratos).
 
-- **Presentation (routes/controllers)**: recebe a requisição HTTP, delega
-  para a camada de serviço e devolve a resposta.
-- **Service (services)**: regras de negócio e validações, orquestra o
-  acesso a dados.
-- **Data Access (repositories)**: leitura e escrita dos dados (aqui, em
-  memória).
-- **Model (models)**: formato/entidade do domínio, usado pelas demais
-  camadas.
+- **Domain (`domain/`)**: entidades do negócio, sem dependências externas.
+- **Application (`application/`)**:
+  - `use-cases/`: regras de negócio (casos de uso), depende apenas de ports.
+  - `ports/`: contratos que o núcleo espera que o mundo externo implemente
+    (ex.: `UsersRepositoryPort`).
+- **Adapters (`adapters/`)**:
+  - `in/http`: adapter primário (driving) — recebe requisições HTTP
+    (rotas/controllers) e aciona os casos de uso.
+  - `out/persistence`: adapter secundário (driven) — implementa o port de
+    repositório (aqui, em memória; poderia ser trocado por um banco real
+    sem alterar o núcleo da aplicação).
+- **Config (`config/`)**: composition root — instancia os adapters
+  concretos e os injeta nos casos de uso (inversão de dependência).
 
 ## Estrutura
 
 ```
 src/
-├── app.js                    # Configuração do Express (middlewares e rotas)
-├── server.js                  # Ponto de entrada, sobe o servidor HTTP
-├── routes/
-│   ├── index.js                # Agrega as rotas da aplicação
-│   └── users.routes.js         # Rotas de usuários
-├── controllers/
-│   └── users.controller.js     # Camada de apresentação (HTTP)
-├── services/
-│   └── users.service.js        # Camada de negócio (validações e regras)
-├── repositories/
-│   └── users.repository.js     # Camada de acesso a dados
-└── models/
-    └── user.js                  # Entidade de domínio
+├── app.js                                       # Monta a instância do Express a partir de um router
+├── server.js                                     # Ponto de entrada, sobe o servidor HTTP
+├── config/
+│   └── container.js                               # Composition root: liga adapters ao núcleo
+├── domain/
+│   └── user.js                                     # Entidade de domínio
+├── application/
+│   ├── ports/
+│   │   └── users-repository.port.js                # Port de saída (contrato de persistência)
+│   └── use-cases/
+│       └── users.service.js                        # Casos de uso / regras de negócio
+└── adapters/
+    ├── in/
+    │   └── http/
+    │       ├── routes.js                             # Agrega as rotas HTTP
+    │       ├── users.routes.js                       # Rotas de usuários
+    │       ├── users.controller.js                   # Controller HTTP (adapter primário)
+    │       └── middlewares/
+    │           └── errorHandler.js                    # Tratamento de erros HTTP
+    └── out/
+        └── persistence/
+            └── in-memory-users.repository.js          # Adapter secundário (implementa o port)
 ```
 
 ## Como rodar

@@ -1,13 +1,19 @@
 const express = require("express");
-const routes = require("./routes");
-const { notFoundHandler, errorHandler } = require("./middlewares/errorHandler");
+const { notFoundHandler, errorHandler } = require("./adapters/in/http/middlewares/errorHandler");
 
-const app = express();
+/**
+ * @param {import("express").Router} router
+ */
+function createApp(router) {
+  const app = express();
 
-app.use(express.json());
-app.use(routes);
+  app.use(express.json());
+  app.use(router);
 
-app.use(notFoundHandler);
-app.use(errorHandler);
+  app.use(notFoundHandler);
+  app.use(errorHandler);
 
-module.exports = app;
+  return app;
+}
+
+module.exports = createApp;
