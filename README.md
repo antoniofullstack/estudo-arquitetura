@@ -1,8 +1,14 @@
-# API Monolítica com Express.js
+# API Monolítica com Express.js (MVC)
 
-Exemplo simples de API REST em arquitetura **monolítica**: toda a aplicação
-(rotas, controllers e modelo de dados) roda em um único processo/deploy,
-organizada em camadas dentro do mesmo projeto.
+Exemplo simples de API REST em arquitetura **monolítica**, organizada no
+padrão **MVC (Model-View-Controller)**: toda a aplicação roda em um único
+processo/deploy, com as responsabilidades separadas em camadas dentro do
+mesmo projeto.
+
+- **Model**: acesso e regras dos dados (`models/`)
+- **View**: formata a saída da API — aqui, o JSON retornado ao cliente (`views/`)
+- **Controller**: recebe a requisição, aciona o Model e usa a View para
+  montar a resposta (`controllers/`)
 
 ## Estrutura
 
@@ -14,7 +20,9 @@ src/
 │   ├── index.js             # Agrega as rotas da aplicação
 │   └── users.routes.js      # Rotas de usuários
 ├── controllers/
-│   └── users.controller.js  # Lógica das requisições
+│   └── users.controller.js  # Orquestra Model e View para cada requisição
+├── views/
+│   └── users.view.js        # Formata os dados de usuário para JSON
 └── models/
     └── users.model.js       # "Persistência" em memória
 ```
