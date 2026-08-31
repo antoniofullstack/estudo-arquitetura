@@ -1,6 +1,8 @@
+const { createUser } = require("../models/user");
+
 let users = [
-  { id: 1, name: "Ana Silva", email: "ana@example.com" },
-  { id: 2, name: "Bruno Costa", email: "bruno@example.com" },
+  createUser({ id: 1, name: "Ana Silva", email: "ana@example.com" }),
+  createUser({ id: 2, name: "Bruno Costa", email: "bruno@example.com" }),
 ];
 let nextId = 3;
 
@@ -13,7 +15,7 @@ function findById(id) {
 }
 
 function create({ name, email }) {
-  const user = { id: nextId++, name, email };
+  const user = createUser({ id: nextId++, name, email });
   users.push(user);
   return user;
 }
